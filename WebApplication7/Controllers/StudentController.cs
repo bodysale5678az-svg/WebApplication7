@@ -61,6 +61,7 @@ namespace WebApplication7.Controllers
 
             _context.Students.Update(student);
             _context.SaveChanges();
+            ViewBag.Departements = _context.Departements.ToList();
             return RedirectToAction("Index");
         }
 
