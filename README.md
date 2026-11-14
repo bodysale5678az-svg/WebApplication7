@@ -1,6 +1,19 @@
 # 📚 Courses & Departments — ASP.NET Core MVC
 
+![C#](https://img.shields.io/badge/C%23-239120?style=flat-square&logo=c-sharp&logoColor=white)
+![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white)
+
 A web application demonstrating **many-to-many relationships** in **Entity Framework Core**, with a full management system for Students, Departments and Courses.
+
+---
+
+## 📸 Screenshots
+
+### Course list with enrolled students
+![Courses index](docs/courses-index.jpeg)
+
+### Many-to-many enrollment
+![Course details and enrollment](docs/enrollment.jpeg)
 
 ---
 

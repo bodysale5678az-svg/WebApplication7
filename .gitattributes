@@ -61,3 +61,10 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Mark Razor views as C# so GitHub reports the project as C
+*.cshtml linguist-language=C#
+*.razor linguist-language=C#
+# Keep generated folders out of language stats
+Migrations/** linguist-generated=true
+wwwroot/** linguist-vendored=false
