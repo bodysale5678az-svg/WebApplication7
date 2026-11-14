@@ -1,0 +1,77 @@
+@model WebApplication7.Models.Course
+
+@{
+    ViewData["Title"] = "Details";
+    var enrolledIds = ViewBag.EnrolledIds as List<int> ?? new List<int>();
+    var allStudents = ViewBag.AllStudents as List<WebApplication7.Models.Student> ?? new List<WebApplication7.Models.Student>();
+}
+
+<h1>Details</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<div>
+    <h4>Course</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt class="col-sm-2">
+            Students
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.Students.Any())
+            {
+                <ul>
+                    @foreach (var student in Model.Students)
+                    {
+                        <li>@student.Name</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span>No students enrolled in this course.</span>
+            }
+        </dd>
+    </dl>
+</div>
+
+<hr />
+
+<h4>Enroll Students</h4>
+<form asp-action="Enroll" asp-route-id="@Model.Id" method="post">
+    @if (allStudents.Any())
+    {
+        foreach (var student in allStudents)
+        {
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="studentIds" value="@student.Id"
+                       id="student_@student.Id" @(enrolledIds.Contains(student.Id) ? "checked" : "") />
+                <label class="form-check-label" for="student_@student.Id">
+                    @student.Name
+                </label>
+            </div>
+        }
+        <button type="submit" class="btn btn-primary mt-3">Save Enrollment</button>
+    }
+    else
+    {
+        <p>No students available. <a asp-controller="Student" asp-action="Create">Create a student first</a>.</p>
+    }
+</form>
+
+<hr />
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

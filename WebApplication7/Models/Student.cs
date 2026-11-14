@@ -12,6 +12,6 @@ namespace WebApplication7.Models
         public int DepartementId { get; set; }
 
         public Departement Departement { get; set; }
-       
+        public List<Course> Courses { get; set; }
     }
 }
