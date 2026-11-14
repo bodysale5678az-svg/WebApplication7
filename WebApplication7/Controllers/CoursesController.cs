@@ -35,15 +35,14 @@ public class CoursesController : Controller
             return NotFound();
         }
 
-        // كل الطلاب في النظام عشان نعرضهم في checkboxes
+        
         ViewBag.AllStudents = await _context.Students.ToListAsync();
-        // أرقام الطلاب المسجلين فعلاً في الكورس ده
+
         ViewBag.EnrolledIds = course.Students.Select(s => s.Id).ToList();
 
         return View(course);
     }
 
-    // POST: COURSES/Enroll/5  -- حفظ الطلاب المسجلين في الكورس (many-to-many)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Enroll(int id, int[] studentIds)
@@ -57,7 +56,7 @@ public class CoursesController : Controller
             return NotFound();
         }
 
-        // نشيل كل الربط القديم ونضيف الجديد حسب اللي اتحدد
+   
         course.Students.Clear();
 
         if (studentIds != null && studentIds.Length > 0)
@@ -79,15 +78,12 @@ public class CoursesController : Controller
         return RedirectToAction(nameof(Details), new { id = course.Id });
     }
 
-    // GET: COURSES/Create
+ 
     public IActionResult Create()
     {
         return View();
     }
 
-    // POST: COURSES/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Name")] Course course)
@@ -117,9 +113,7 @@ public class CoursesController : Controller
         return View(course);
     }
 
-    // POST: COURSES/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+  
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int? id, [Bind("Id,Name")] Course course)

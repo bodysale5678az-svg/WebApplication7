@@ -14,7 +14,7 @@ namespace WebApplication7.Controllers
             _context = context;
         }
 
-        // عرض كل الأقسام مع عدد الطلاب في كل قسم
+        
         public IActionResult Index()
         {
             List<Departement> departements = _context.Departements.Include(d => d.Students).ToList();
@@ -27,7 +27,7 @@ namespace WebApplication7.Controllers
             return View();
         }
 
-        // حفظ القسم الجديد في الداتا بيز
+   
         [HttpPost]
         public IActionResult Create(Departement departement)
         {
@@ -48,7 +48,7 @@ namespace WebApplication7.Controllers
             return View(departement);
         }
 
-        // حفظ التعديل في الداتا بيز
+       
         [HttpPost]
         public IActionResult Edit(int id, Departement departement)
         {
@@ -62,7 +62,7 @@ namespace WebApplication7.Controllers
             return RedirectToAction("Index");
         }
 
-        // عرض تفاصيل قسم مع الطلاب اللي فيه
+        
         public IActionResult Details(int id)
         {
             var departement = _context.Departements
@@ -77,7 +77,7 @@ namespace WebApplication7.Controllers
             return View(departement);
         }
 
-        // صفحة تأكيد الحذف
+        
         public IActionResult Delete(int id)
         {
             var departement = _context.Departements
