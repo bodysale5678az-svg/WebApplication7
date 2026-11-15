@@ -60,10 +60,6 @@ namespace WebApplication7.Controllers
         {
             var department = _context.Departements.Find(id);
 
-            if (department == null)
-            {
-                return NotFound();
-            }
 
             return View(department);
         }
