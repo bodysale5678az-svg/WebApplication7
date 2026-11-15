@@ -15,7 +15,8 @@ namespace WebApplication7.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int? courseId)
+        // GET: Enrollments
+        public IActionResult Index(int? courseId)
         {
             var query = _context.Enrollments
                 .Include(e => e.Student)
@@ -27,28 +28,24 @@ namespace WebApplication7.Controllers
                 query = query.Where(e => e.CourseId == courseId.Value);
             }
 
-            ViewBag.Courses = await _context.Course.OrderBy(c => c.Name).ToListAsync();
+            ViewBag.Courses = _context.Course.OrderBy(c => c.Name).ToList();
             ViewBag.SelectedCourseId = courseId;
 
-            var enrollments = await query
+            List<Enrollment> enrollments = query
                 .OrderBy(e => e.Course!.Name)
                 .ThenBy(e => e.Student!.Name)
-                .ToListAsync();
+                .ToList();
 
             return View(enrollments);
         }
 
-        public async Task<IActionResult> Details(int? id)
+        // GET: Enrollments/Details/5
+        public IActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var enrollment = await _context.Enrollments
+            var enrollment = _context.Enrollments
                 .Include(e => e.Student)
                 .Include(e => e.Course)
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .FirstOrDefault(e => e.Id == id);
 
             if (enrollment == null)
             {
@@ -58,96 +55,91 @@ namespace WebApplication7.Controllers
             return View(enrollment);
         }
 
-        public async Task<IActionResult> Create()
+        // GET: Enrollments/Create
+        public IActionResult Create()
         {
-            await PopulateDropDowns();
+            PopulateDropDowns(null, null);
             return View(new Enrollment { EnrolledOn = DateTime.Today });
         }
 
+        // POST: Enrollments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("StudentId,CourseId,EnrolledOn")] Enrollment enrollment)
+        public IActionResult Create(Enrollment enrollment)
         {
-            await ValidatePair(enrollment);
+            if (enrollment == null)
+            {
+                return NotFound();
+            }
+
+            ValidatePair(enrollment, null);
 
             if (!ModelState.IsValid)
             {
-                await PopulateDropDowns(enrollment.StudentId, enrollment.CourseId);
+                PopulateDropDowns(enrollment.StudentId, enrollment.CourseId);
                 return View(enrollment);
             }
 
             _context.Enrollments.Add(enrollment);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             TempData["Message"] = "Enrolment created successfully.";
+
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        // GET: Enrollments/Edit/5
+        public IActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var enrollment = await _context.Enrollments.FindAsync(id);
+            var enrollment = _context.Enrollments.Find(id);
 
             if (enrollment == null)
             {
                 return NotFound();
             }
 
-            await PopulateDropDowns(enrollment.StudentId, enrollment.CourseId);
+            PopulateDropDowns(enrollment.StudentId, enrollment.CourseId);
             return View(enrollment);
         }
 
+        // POST: Enrollments/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int? id, [Bind("Id,StudentId,CourseId,EnrolledOn")] Enrollment enrollment)
+        public IActionResult Edit(int id, Enrollment enrollment)
         {
             if (id != enrollment.Id)
             {
                 return NotFound();
             }
 
-            await ValidatePair(enrollment, enrollment.Id);
-
-            if (!ModelState.IsValid)
-            {
-                await PopulateDropDowns(enrollment.StudentId, enrollment.CourseId);
-                return View(enrollment);
-            }
-
-            try
-            {
-                _context.Enrollments.Update(enrollment);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EnrollmentExists(enrollment.Id))
-                {
-                    return NotFound();
-                }
-
-                throw;
-            }
-
-            TempData["Message"] = "Enrolment updated successfully.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
+            if (enrollment == null)
             {
                 return NotFound();
             }
 
-            var enrollment = await _context.Enrollments
+            ValidatePair(enrollment, enrollment.Id);
+
+            if (!ModelState.IsValid)
+            {
+                PopulateDropDowns(enrollment.StudentId, enrollment.CourseId);
+                return View(enrollment);
+            }
+
+            _context.Enrollments.Update(enrollment);
+            _context.SaveChanges();
+
+            TempData["Message"] = "Enrolment updated successfully.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Enrollments/Delete/5
+        public IActionResult Delete(int id)
+        {
+            var enrollment = _context.Enrollments
                 .Include(e => e.Student)
                 .Include(e => e.Course)
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .FirstOrDefault(e => e.Id == id);
 
             if (enrollment == null)
             {
@@ -157,36 +149,36 @@ namespace WebApplication7.Controllers
             return View(enrollment);
         }
 
+        // POST: Enrollments/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int? id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
+            var enrollment = _context.Enrollments.Find(id);
 
             if (enrollment != null)
             {
                 _context.Enrollments.Remove(enrollment);
-                await _context.SaveChangesAsync();
+                _context.SaveChanges();
+
                 TempData["Message"] = "Enrolment deleted.";
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        private async Task PopulateDropDowns(int? studentId = null, int? courseId = null)
+        private void PopulateDropDowns(int? studentId, int? courseId)
         {
-            ViewBag.Students = new SelectList(
-                await _context.Students.OrderBy(s => s.Name).ToListAsync(),
-                "Id", "Name", studentId);
+            List<Student> students = _context.Students.OrderBy(s => s.Name).ToList();
+            ViewBag.Students = new SelectList(students, "Id", "Name", studentId);
 
-            ViewBag.Courses = new SelectList(
-                await _context.Course.OrderBy(c => c.Name).ToListAsync(),
-                "Id", "Name", courseId);
+            List<Course> courses = _context.Course.OrderBy(c => c.Name).ToList();
+            ViewBag.Courses = new SelectList(courses, "Id", "Name", courseId);
         }
 
-        private async Task ValidatePair(Enrollment enrollment, int? ignoreId = null)
+        private void ValidatePair(Enrollment enrollment, int? ignoreId)
         {
-            var alreadyExists = await _context.Enrollments.AnyAsync(e =>
+            bool alreadyExists = _context.Enrollments.Any(e =>
                 e.StudentId == enrollment.StudentId &&
                 e.CourseId == enrollment.CourseId &&
                 (ignoreId == null || e.Id != ignoreId));
@@ -196,11 +188,6 @@ namespace WebApplication7.Controllers
                 ModelState.AddModelError(string.Empty,
                     "This student is already enrolled in that course.");
             }
-        }
-
-        private bool EnrollmentExists(int id)
-        {
-            return _context.Enrollments.Any(e => e.Id == id);
         }
     }
 }

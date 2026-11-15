@@ -14,73 +14,72 @@ namespace WebApplication7.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        // GET: Courses
+        public IActionResult Index()
         {
-            var courses = await _context.Course
+            List<Course> courses = _context.Course
                 .Include(c => c.Enrollments)
                     .ThenInclude(e => e.Student)
-                .ToListAsync();
+                .ToList();
 
             return View(courses);
         }
 
-        public async Task<IActionResult> Details(int? id)
+        // GET: Courses/Details/5
+        public IActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var course = await _context.Course
+            var course = _context.Course
                 .Include(c => c.Enrollments)
                     .ThenInclude(e => e.Student)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefault(c => c.Id == id);
 
             if (course == null)
             {
                 return NotFound();
             }
 
-            ViewBag.AllStudents = await _context.Students
-                .OrderBy(s => s.Name)
-                .ToListAsync();
-
-            ViewBag.EnrolledIds = course.Enrollments
-                .Select(e => e.StudentId)
-                .ToList();
+            ViewBag.AllStudents = _context.Students.OrderBy(s => s.Name).ToList();
+            ViewBag.EnrolledIds = course.Enrollments.Select(e => e.StudentId).ToList();
 
             return View(course);
         }
 
+        // POST: Courses/Enroll/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Enroll(int id, int[]? studentIds)
+        public IActionResult Enroll(int id, int[] studentIds)
         {
-            var course = await _context.Course
+            var course = _context.Course
                 .Include(c => c.Enrollments)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefault(c => c.Id == id);
 
             if (course == null)
             {
                 return NotFound();
             }
 
-            var wanted = (studentIds ?? Array.Empty<int>()).ToHashSet();
-            var existing = course.Enrollments.ToDictionary(e => e.StudentId);
+            HashSet<int> wanted = (studentIds ?? Array.Empty<int>()).ToHashSet();
+            Dictionary<int, Enrollment> existing = course.Enrollments.ToDictionary(e => e.StudentId);
 
-            foreach (var enrollment in course.Enrollments.Where(e => !wanted.Contains(e.StudentId)).ToList())
+            List<Enrollment> toRemove = course.Enrollments
+                .Where(e => !wanted.Contains(e.StudentId))
+                .ToList();
+
+            foreach (var enrollment in toRemove)
             {
                 _context.Enrollments.Remove(enrollment);
             }
 
-            var toAdd = wanted.Where(studentId => !existing.ContainsKey(studentId)).ToList();
+            List<int> toAdd = wanted
+                .Where(studentId => !existing.ContainsKey(studentId))
+                .ToList();
 
             if (toAdd.Count > 0)
             {
-                var validIds = await _context.Students
+                List<int> validIds = _context.Students
                     .Where(s => toAdd.Contains(s.Id))
                     .Select(s => s.Id)
-                    .ToListAsync();
+                    .ToList();
 
                 foreach (var studentId in validIds)
                 {
@@ -93,41 +92,39 @@ namespace WebApplication7.Controllers
                 }
             }
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             TempData["Message"] = $"Enrollment updated: {wanted.Count} student(s) in this course.";
 
             return RedirectToAction(nameof(Details), new { id = course.Id });
         }
 
+        // GET: Courses/Create
         public IActionResult Create()
         {
             return View();
         }
 
+        // POST: Courses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name")] Course course)
+        public IActionResult Create(Course course)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(course);
-            }
-
-            _context.Course.Add(course);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
+            if (course == null)
             {
                 return NotFound();
             }
 
-            var course = await _context.Course.FindAsync(id);
+            _context.Course.Add(course);
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Courses/Edit/5
+        public IActionResult Edit(int id)
+        {
+            var course = _context.Course.Find(id);
 
             if (course == null)
             {
@@ -137,49 +134,34 @@ namespace WebApplication7.Controllers
             return View(course);
         }
 
+        // POST: Courses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int? id, [Bind("Id,Name")] Course course)
+        public IActionResult Edit(int id, Course course)
         {
             if (id != course.Id)
             {
                 return NotFound();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return View(course);
-            }
-
-            try
-            {
-                _context.Course.Update(course);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CourseExists(course.Id))
-                {
-                    return NotFound();
-                }
-
-                throw;
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
+            if (course == null)
             {
                 return NotFound();
             }
 
-            var course = await _context.Course
+            _context.Course.Update(course);
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Courses/Delete/5
+        public IActionResult Delete(int id)
+        {
+            var course = _context.Course
                 .Include(c => c.Enrollments)
                     .ThenInclude(e => e.Student)
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefault(c => c.Id == id);
 
             if (course == null)
             {
@@ -189,24 +171,20 @@ namespace WebApplication7.Controllers
             return View(course);
         }
 
+        // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int? id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var course = await _context.Course.FindAsync(id);
+            var course = _context.Course.Find(id);
 
             if (course != null)
             {
                 _context.Course.Remove(course);
-                await _context.SaveChangesAsync();
+                _context.SaveChanges();
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CourseExists(int? id)
-        {
-            return _context.Course.Any(c => c.Id == id);
         }
     }
 }
