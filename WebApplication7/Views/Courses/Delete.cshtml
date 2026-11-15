@@ -1,7 +1,8 @@
 @model WebApplication7.Models.Course
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Course";
+    var enrollments = Model.Enrollments ?? new List<WebApplication7.Models.Enrollment>();
 }
 
 <h1>Delete</h1>
@@ -11,21 +12,35 @@
     <h4>WebApplication7.Models.Course</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
-        <dd class = "col-sm-10">
+        <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Name)
         </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Students)
+
+        <dt class="col-sm-2">
+            Students
         </dt>
-        <dd class = "col-sm-10">
-            @string.Join(", ", Model.Students.Select(s => s.Name))
+        <dd class="col-sm-10">
+            @if (enrollments.Any())
+            {
+                @string.Join(", ", enrollments.Select(e => e.Student?.Name).Where(n => n != null))
+            }
+            else
+            {
+                <span class="text-muted">None</span>
+            }
         </dd>
     </dl>
+
+    @if (enrollments.Any())
+    {
+        <div class="alert alert-warning">
+            This course has @enrollments.Count enrolment(s). Deleting it will remove them too.
+        </div>
+    }
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |

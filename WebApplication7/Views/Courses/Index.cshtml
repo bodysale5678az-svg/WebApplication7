@@ -1,7 +1,7 @@
 @model IEnumerable<WebApplication7.Models.Course>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Courses";
 }
 
 <h1>Index</h1>
@@ -16,7 +16,7 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Students)
+                Students
             </th>
             <th></th>
         </tr>
@@ -28,13 +28,16 @@
                 @Html.DisplayFor(model => item.Name)
             </td>
             <td>
-                @if (item.Students.Any())
+                @{
+                    var enrollments = item.Enrollments ?? new List<WebApplication7.Models.Enrollment>();
+                }
+                @if (enrollments.Any())
                 {
-                    @string.Join(", ", item.Students.Select(s => s.Name))
+                    @string.Join(", ", enrollments.Select(e => e.Student?.Name).Where(n => n != null))
                 }
                 else
                 {
-                    <span>-</span>
+                    <span class="text-muted">-</span>
                 }
             </td>
             <td>

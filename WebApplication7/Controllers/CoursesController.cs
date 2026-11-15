@@ -14,9 +14,12 @@ public class CoursesController : Controller
     }
 
     // GET: COURSES
-    public async Task<IActionResult> Index()    
+    public async Task<IActionResult> Index()
     {
-        return View(await _context.Course.Include(c => c.Students).ToListAsync());
+        return View(await _context.Course
+            .Include(c => c.Enrollments)
+                .ThenInclude(e => e.Student)
+            .ToListAsync());
     }
 
     // GET: COURSES/Details/5
@@ -28,27 +31,35 @@ public class CoursesController : Controller
         }
 
         var course = await _context.Course
-            .Include(c => c.Students)
+            .Include(c => c.Enrollments)
+                .ThenInclude(e => e.Student)
             .FirstOrDefaultAsync(m => m.Id == id);
+
         if (course == null)
         {
             return NotFound();
         }
 
-        
-        ViewBag.AllStudents = await _context.Students.ToListAsync();
+        // كل الطلاب في النظام عشان نعرضهم في checkboxes
+        ViewBag.AllStudents = await _context.Students
+            .OrderBy(s => s.Name)
+            .ToListAsync();
 
-        ViewBag.EnrolledIds = course.Students.Select(s => s.Id).ToList();
+        // أرقام الطلاب المسجلين فعلاً في الكورس ده
+        ViewBag.EnrolledIds = course.Enrollments
+            .Select(e => e.StudentId)
+            .ToList();
 
         return View(course);
     }
 
+    // POST: COURSES/Enroll/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Enroll(int id, int[] studentIds)
     {
         var course = await _context.Course
-            .Include(c => c.Students)
+            .Include(c => c.Enrollments)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (course == null)
@@ -56,34 +67,57 @@ public class CoursesController : Controller
             return NotFound();
         }
 
-   
-        course.Students.Clear();
+        // نبني مجموعتين: المطلوب والموجود حالياً
+        var wanted = (studentIds ?? Array.Empty<int>()).ToHashSet();
+        var existing = course.Enrollments
+            .ToDictionary(e => e.StudentId, e => e);
 
-        if (studentIds != null && studentIds.Length > 0)
+        // 1) احذف الي اتشال
+        var toRemove = course.Enrollments
+            .Where(e => !wanted.Contains(e.StudentId))
+            .ToList();
+
+        foreach (var enrollment in toRemove)
         {
-            var students = await _context.Students
-                .Where(s => studentIds.Contains(s.Id))
+            _context.Enrollments.Remove(enrollment);
+        }
+
+        // 2) ضيف الجديد بس
+        var toAdd = wanted.Where(sid => !existing.ContainsKey(sid)).ToList();
+
+        if (toAdd.Count > 0)
+        {
+            // نتأكد إن الطلاب موجودين فعلاً
+            var validIds = await _context.Students
+                .Where(s => toAdd.Contains(s.Id))
+                .Select(s => s.Id)
                 .ToListAsync();
 
-            foreach (var student in students)
+            foreach (var studentId in validIds)
             {
-                course.Students.Add(student);
+                _context.Enrollments.Add(new Enrollment
+                {
+                    CourseId = course.Id,
+                    StudentId = studentId,
+                    EnrolledOn = DateTime.Today
+                });
             }
         }
 
         await _context.SaveChangesAsync();
 
-        TempData["Message"] = "Student enrollment saved successfully.";
+        TempData["Message"] = $"Enrollment updated: {wanted.Count} student(s) in this course.";
 
         return RedirectToAction(nameof(Details), new { id = course.Id });
     }
 
- 
+    // GET: COURSES/Create
     public IActionResult Create()
     {
         return View();
     }
 
+    // POST: COURSES/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create([Bind("Id,Name")] Course course)
@@ -113,7 +147,7 @@ public class CoursesController : Controller
         return View(course);
     }
 
-  
+    // POST: COURSES/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int? id, [Bind("Id,Name")] Course course)
@@ -155,8 +189,10 @@ public class CoursesController : Controller
         }
 
         var course = await _context.Course
-            .Include(c => c.Students)
+            .Include(c => c.Enrollments)
+                .ThenInclude(e => e.Student)
             .FirstOrDefaultAsync(m => m.Id == id);
+
         if (course == null)
         {
             return NotFound();
