@@ -46,7 +46,6 @@ namespace WebApplication7.Controllers
 
         // POST: Courses/Enroll/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Enroll(int id, int[] studentIds)
         {
             var course = _context.Course
@@ -107,7 +106,6 @@ namespace WebApplication7.Controllers
 
         // POST: Courses/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Create(Course course)
         {
             if (course == null)
@@ -136,7 +134,6 @@ namespace WebApplication7.Controllers
 
         // POST: Courses/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Course course)
         {
             if (id != course.Id)
@@ -173,7 +170,6 @@ namespace WebApplication7.Controllers
 
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             var course = _context.Course.Find(id);

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication7.Data;
@@ -48,7 +48,6 @@ namespace WebApplication7.Controllers
 
         // POST: Student/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Create(Student student)
         {
             if (student == null)
@@ -78,7 +77,6 @@ namespace WebApplication7.Controllers
 
         // POST: Student/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Student student)
         {
             if (id != student.Id)
@@ -116,7 +114,6 @@ namespace WebApplication7.Controllers
 
         // POST: Student/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             var student = _context.Students.Find(id);

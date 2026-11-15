@@ -64,7 +64,6 @@ namespace WebApplication7.Controllers
 
         // POST: Enrollments/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Create(Enrollment enrollment)
         {
             if (enrollment == null)
@@ -104,7 +103,6 @@ namespace WebApplication7.Controllers
 
         // POST: Enrollments/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Enrollment enrollment)
         {
             if (id != enrollment.Id)
@@ -151,7 +149,6 @@ namespace WebApplication7.Controllers
 
         // POST: Enrollments/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             var enrollment = _context.Enrollments.Find(id);

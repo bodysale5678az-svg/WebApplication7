@@ -17,106 +17,92 @@ namespace WebApplication7.Controllers
         // GET: Departement
         public IActionResult Index()
         {
-            List<Departement> departements = _context.Departements.Include(d => d.Students).ToList();
-            return View(departements);
+            var departments = _context.Departements.Include(d => d.Students).ToList();
+
+            return View(departments);
         }
 
         // GET: Departement/Details/5
         public IActionResult Details(int id)
         {
-            var departement = _context.Departements
+            var department = _context.Departements
                 .Include(d => d.Students)
                 .FirstOrDefault(d => d.Id == id);
 
-            if (departement == null)
+            if (department == null)
             {
                 return NotFound();
             }
 
-            return View(departement);
+            return View(department);
         }
 
-        // GET: Departement/Create
+        // GET: Department/Create
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Departement/Create
+        // POST: Department/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Departement departement)
+        public IActionResult Create(Departement department)
         {
-            if (departement == null)
-            {
-                return NotFound();
-            }
-
-            _context.Departements.Add(departement);
+            _context.Departements.Add(department);
             _context.SaveChanges();
 
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Departement/Edit/5
+        // GET: Department/Edit/5
+        [HttpGet]
         public IActionResult Edit(int id)
         {
-            var departement = _context.Departements.Find(id);
+            var department = _context.Departements.Find(id);
 
-            if (departement == null)
+            if (department == null)
             {
                 return NotFound();
             }
 
-            return View(departement);
+            return View(department);
         }
 
-        // POST: Departement/Edit/5
+        // POST: Department/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, Departement departement)
+        public IActionResult Edit(int id, Departement department)
         {
-            if (id != departement.Id)
-            {
-                return NotFound();
-            }
-
-            if (departement == null)
-            {
-                return NotFound();
-            }
-
-            _context.Departements.Update(departement);
+            _context.Departements.Update(department);
             _context.SaveChanges();
 
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Departement/Delete/5
+        // GET: Department/Delete/5
+        [HttpGet]
         public IActionResult Delete(int id)
         {
-            var departement = _context.Departements
+            var department = _context.Departements
                 .Include(d => d.Students)
                 .FirstOrDefault(d => d.Id == id);
 
-            if (departement == null)
+            if (department == null)
             {
                 return NotFound();
             }
 
-            return View(departement);
+            return View(department);
         }
 
-        // POST: Departement/Delete/5
+        // POST: Department/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var departement = _context.Departements.Find(id);
+            var department = _context.Departements.Find(id);
 
-            if (departement != null)
+            if (department != null)
             {
-                _context.Departements.Remove(departement);
+                _context.Departements.Remove(department);
                 _context.SaveChanges();
             }
 
