@@ -132,7 +132,7 @@ namespace WebApplication7.Migrations
                     b.HasOne("WebApplication7.Models.Departement", "Departement")
                         .WithMany("Students")
                         .HasForeignKey("DepartementId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Departement");
