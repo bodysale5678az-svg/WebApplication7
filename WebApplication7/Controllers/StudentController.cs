@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication7.Data;
 using WebApplication7.Models;
@@ -14,62 +15,100 @@ namespace WebApplication7.Controllers
             _context = context;
         }
 
-      
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Student> students = _context.Students.Include(s => s.Departement).ToList();
+            var students = await _context.Students
+                .Include(s => s.Departement)
+                .ToListAsync();
+
             return View(students);
         }
 
-      
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Departements = _context.Departements.ToList();
+            await PopulateDepartements();
             return View();
         }
 
-        // حفظ الطالب الجديد في الداتا بيز
         [HttpPost]
-        public IActionResult Create(Student student)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Name,Age,DepartementId")] Student student)
         {
+            if (!ModelState.IsValid)
+            {
+                await PopulateDepartements(student.DepartementId);
+                return View(student);
+            }
+
             _context.Students.Add(student);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
-        
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int? id)
         {
-            var student = _context.Students.Find(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var student = await _context.Students.FindAsync(id);
+
             if (student == null)
             {
                 return NotFound();
             }
 
-            ViewBag.Departements = _context.Departements.ToList();
+            await PopulateDepartements(student.DepartementId);
             return View(student);
         }
 
-        
         [HttpPost]
-        public IActionResult Edit(int id, Student student)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int? id, [Bind("Id,Name,Age,DepartementId")] Student student)
         {
             if (id != student.Id)
             {
                 return NotFound();
             }
 
-            _context.Students.Update(student);
-            _context.SaveChanges();
-            ViewBag.Departements = _context.Departements.ToList();
-            return RedirectToAction("Index");
+            if (!ModelState.IsValid)
+            {
+                await PopulateDepartements(student.DepartementId);
+                return View(student);
+            }
+
+            try
+            {
+                _context.Update(student);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!StudentExists(student.Id))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            var student = _context.Students
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var student = await _context.Students
                 .Include(s => s.Departement)
-                .FirstOrDefault(s => s.Id == id);
+                .Include(s => s.Enrollments)
+                    .ThenInclude(e => e.Course)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (student == null)
             {
@@ -79,12 +118,18 @@ namespace WebApplication7.Controllers
             return View(student);
         }
 
- 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int? id)
         {
-            var student = _context.Students
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var student = await _context.Students
                 .Include(s => s.Departement)
-                .FirstOrDefault(s => s.Id == id);
+                .Include(s => s.Enrollments)
+                    .ThenInclude(e => e.Course)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (student == null)
             {
@@ -94,18 +139,33 @@ namespace WebApplication7.Controllers
             return View(student);
         }
 
-        
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            var student = _context.Students.Find(id);
+            var student = await _context.Students.FindAsync(id);
+
             if (student != null)
             {
                 _context.Students.Remove(student);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task PopulateDepartements(int? selectedId = null)
+        {
+            var departements = await _context.Departements
+                .OrderBy(d => d.Name)
+                .ToListAsync();
+
+            ViewBag.Departements = new SelectList(departements, "Id", "Name", selectedId);
+        }
+
+        private bool StudentExists(int id)
+        {
+            return _context.Students.Any(s => s.Id == id);
         }
     }
 }

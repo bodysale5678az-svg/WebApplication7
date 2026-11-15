@@ -1,7 +1,7 @@
 @model IEnumerable<WebApplication7.Models.Departement>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Departements";
 }
 
 <h1>Index</h1>
@@ -10,15 +10,11 @@
     <a asp-action="Create">Create New</a>
 </p>
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Students)
-            </th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>Students</th>
             <th></th>
         </tr>
     </thead>
@@ -26,12 +22,8 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-                </td>
-                <td>
-                    @item.Students.Count
-                </td>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>@item.Students.Count</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a> |

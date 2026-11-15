@@ -3,12 +3,9 @@
     public class Course
     {
         public int Id { get; set; }
-        public string Name { get; set; }
 
-        /// <summary>
-        /// Enrolments for this course. The many-to-many relationship with
-        /// Student is expressed through the Enrollment join entity.
-        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
         public List<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     }
 }

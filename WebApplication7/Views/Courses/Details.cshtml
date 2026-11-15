@@ -4,7 +4,6 @@
     ViewData["Title"] = "Course Details";
     var enrolledIds = ViewBag.EnrolledIds as List<int> ?? new List<int>();
     var allStudents = ViewBag.AllStudents as List<WebApplication7.Models.Student> ?? new List<WebApplication7.Models.Student>();
-    var enrollments = Model.Enrollments ?? new List<WebApplication7.Models.Enrollment>();
 }
 
 <h1>Details</h1>
@@ -36,9 +35,9 @@
             Students
         </dt>
         <dd class="col-sm-10">
-            @if (enrollments.Any())
+            @if (Model.Enrollments.Any())
             {
-                <span class="badge bg-primary">@enrollments.Count</span>
+                <span class="badge bg-primary">@Model.Enrollments.Count</span>
             }
             else
             {
@@ -52,20 +51,20 @@
 
 <h4>Students enrolled</h4>
 
-@if (enrollments.Any())
+@if (Model.Enrollments.Any())
 {
     <table class="table table-striped table-hover">
         <thead>
             <tr>
                 <th>@Html.DisplayNameFor(model => model.Enrollments[0].Id)</th>
-                <th>@Html.DisplayNameFor(model => model.Enrollments[0].Student.Name)</th>
-                <th>@Html.DisplayNameFor(model => model.Enrollments[0].Student.Age)</th>
+                <th>Student</th>
+                <th>Age</th>
                 <th>@Html.DisplayNameFor(model => model.Enrollments[0].EnrolledOn)</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var enrollment in enrollments.OrderBy(e => e.StudentId))
+            @foreach (var enrollment in Model.Enrollments.OrderBy(e => e.StudentId))
             {
                 <tr>
                     <td>@enrollment.Id</td>
@@ -114,6 +113,6 @@ else
 <hr />
 
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>

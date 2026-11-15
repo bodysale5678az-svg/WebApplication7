@@ -14,32 +14,44 @@ namespace WebApplication7.Controllers
             _context = context;
         }
 
-        
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Departement> departements = _context.Departements.Include(d => d.Students).ToList();
+            var departements = await _context.Departements
+                .Include(d => d.Students)
+                .ToListAsync();
+
             return View(departements);
         }
 
-        // صفحة إضافة قسم جديد
         public IActionResult Create()
         {
             return View();
         }
 
-   
         [HttpPost]
-        public IActionResult Create(Departement departement)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Name")] Departement departement)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(departement);
+            }
+
             _context.Departements.Add(departement);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
-       
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int? id)
         {
-            var departement = _context.Departements.Find(id);
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var departement = await _context.Departements.FindAsync(id);
+
             if (departement == null)
             {
                 return NotFound();
@@ -48,26 +60,48 @@ namespace WebApplication7.Controllers
             return View(departement);
         }
 
-       
         [HttpPost]
-        public IActionResult Edit(int id, Departement departement)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int? id, [Bind("Id,Name")] Departement departement)
         {
             if (id != departement.Id)
             {
                 return NotFound();
             }
 
-            _context.Departements.Update(departement);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            if (!ModelState.IsValid)
+            {
+                return View(departement);
+            }
+
+            try
+            {
+                _context.Update(departement);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!DepartementExists(departement.Id))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
-        
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            var departement = _context.Departements
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var departement = await _context.Departements
                 .Include(d => d.Students)
-                .FirstOrDefault(d => d.Id == id);
+                .FirstOrDefaultAsync(d => d.Id == id);
 
             if (departement == null)
             {
@@ -77,12 +111,16 @@ namespace WebApplication7.Controllers
             return View(departement);
         }
 
-        
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int? id)
         {
-            var departement = _context.Departements
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var departement = await _context.Departements
                 .Include(d => d.Students)
-                .FirstOrDefault(d => d.Id == id);
+                .FirstOrDefaultAsync(d => d.Id == id);
 
             if (departement == null)
             {
@@ -92,18 +130,24 @@ namespace WebApplication7.Controllers
             return View(departement);
         }
 
-        // الحذف الفعلي
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int? id)
         {
-            var departement = _context.Departements.Find(id);
+            var departement = await _context.Departements.FindAsync(id);
+
             if (departement != null)
             {
                 _context.Departements.Remove(departement);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool DepartementExists(int id)
+        {
+            return _context.Departements.Any(d => d.Id == id);
         }
     }
 }

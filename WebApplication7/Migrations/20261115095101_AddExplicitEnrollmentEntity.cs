@@ -1,14 +1,12 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace WebApplication7.Migrations
 {
-    /// <inheritdoc />
     public partial class AddExplicitEnrollmentEntity : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -37,10 +35,6 @@ namespace WebApplication7.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            // Copy every existing pairing from the implicit junction table
-            // into the new explicit Enrollments table before dropping it, so
-            // no enrolment data is lost during the switch-over.
             migrationBuilder.Sql(@"
                 IF OBJECT_ID(N'[CourseStudent]', N'U') IS NOT NULL
                 BEGIN
@@ -66,8 +60,6 @@ namespace WebApplication7.Migrations
                 columns: new[] { "StudentId", "CourseId" },
                 unique: true);
         }
-
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
