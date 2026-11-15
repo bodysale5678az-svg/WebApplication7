@@ -1,0 +1,78 @@
+@model IEnumerable<WebApplication7.Models.Enrollment>
+
+@{
+    ViewData["Title"] = "Enrollments";
+    var courses = ViewBag.Courses as List<WebApplication7.Models.Course> ?? new List<WebApplication7.Models.Course>();
+    int? selectedCourseId = ViewBag.SelectedCourseId as int?;
+}
+
+<h1>Index</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+    <div class="col-auto">
+        <label class="col-form-label">Filter by course:</label>
+    </div>
+    <div class="col-auto">
+        <select name="courseId" class="form-select" onchange="this.form.submit()">
+            <option value="">— All courses —</option>
+            @foreach (var course in courses)
+            {
+                <option value="@course.Id" selected="@(selectedCourseId == course.Id)">@course.Name</option>
+            }
+        </select>
+    </div>
+</form>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.Id)</th>
+            <th>Student</th>
+            <th>Course</th>
+            <th>@Html.DisplayNameFor(model => model.EnrolledOn)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="5" class="text-muted">No enrolments found.</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>
+                        <a asp-controller="Student" asp-action="Details" asp-route-id="@item.StudentId">
+                            @(item.Student?.Name ?? "-")
+                        </a>
+                    </td>
+                    <td>
+                        <a asp-controller="Courses" asp-action="Details" asp-route-id="@item.CourseId">
+                            @(item.Course?.Name ?? "-")
+                        </a>
+                    </td>
+                    <td>@item.EnrolledOn.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
